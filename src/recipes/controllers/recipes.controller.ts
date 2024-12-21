@@ -5,15 +5,20 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { map } from 'rxjs';
 
+import { ValidateSortByPipe, ValidateSortOrderPipe } from 'src/shared';
+
 import { CreateRecipeDTO, UpdateRecipeDTO } from '../dto';
 import { RecipesService } from '../services';
 import { SortBy } from '../types';
+import { sortOptions } from '../configs';
 
 @Controller('recipes')
 export class RecipesController {
@@ -22,10 +27,10 @@ export class RecipesController {
   @Get()
   getRecipes(
     @Query('name') name: string,
-    @Query('sortBy') sortBy: SortBy,
-    @Query('sortOrder') sortOrder: 'asc' | 'desc',
-    @Query('page') page: number,
-    @Query('limit') limit: number,
+    @Query('sortBy', new ValidateSortByPipe([...sortOptions])) sortBy: SortBy,
+    @Query('sortOrder', ValidateSortOrderPipe) sortOrder: 'asc' | 'desc',
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
   ) {
     console.log('get all');
 
@@ -33,10 +38,18 @@ export class RecipesController {
   }
 
   @Get(':id')
-  getRecipe(@Param('id') id: string) {
+  getRecipe(@Param('id', ParseUUIDPipe) id: string) {
     console.log('get id');
 
-    return this.recipesService.getRecipe(id);
+    return this.recipesService.getRecipe(id).pipe(
+      map((result) => {
+        if (!result) {
+          throw new NotFoundException('Recipe not found');
+        }
+
+        return result;
+      }),
+    );
   }
 
   @Post()
@@ -62,7 +75,7 @@ export class RecipesController {
   }
 
   @Delete(':id')
-  deleteRecipe(@Param('id') id: string) {
+  deleteRecipe(@Param('id', ParseUUIDPipe) id: string) {
     console.log('delete');
 
     return this.recipesService.deleteRecipe(id).pipe(

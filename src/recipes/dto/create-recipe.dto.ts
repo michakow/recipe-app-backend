@@ -1,3 +1,3 @@
-import { Recipe } from '../models';
+import { RecipesEntity } from '../entities';
 
-export type CreateRecipeDTO = Omit<Recipe, 'id'>;
+export class CreateRecipeDTO extends RecipesEntity {}

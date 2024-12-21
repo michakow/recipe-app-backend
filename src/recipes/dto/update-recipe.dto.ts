@@ -1,3 +1,3 @@
-import { CreateRecipeDTO } from './create-recipe.dto';
+import { RecipesEntity } from '../entities';
 
-export type UpdateRecipeDTO = Partial<CreateRecipeDTO>;
+export class UpdateRecipeDTO extends RecipesEntity {}
