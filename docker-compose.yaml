@@ -1,0 +1,17 @@
+services:
+  recipes_db:
+    image: postgres:latest
+    container_name: recipes_db
+    environment:
+      - POSTGRES_DB=recipesdb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - '5433:5432'
+    volumes:
+      - recipes_data:/var/lib/postgresql/data
+
+volumes:
+  recipes_data:
+    driver: local
+    name: recipes_data
