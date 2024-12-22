@@ -13,7 +13,11 @@ import {
 } from '@nestjs/common';
 import { map } from 'rxjs';
 
-import { ValidateSortByPipe, ValidateSortOrderPipe } from 'src/shared';
+import {
+  ValidateIsPositivePipe,
+  ValidateSortByPipe,
+  ValidateSortOrderPipe,
+} from 'src/shared';
 
 import { CreateRecipeDTO, UpdateRecipeDTO } from '../dto';
 import { RecipesService } from '../services';
@@ -29,8 +33,8 @@ export class RecipesController {
     @Query('name') name: string,
     @Query('sortBy', new ValidateSortByPipe([...sortOptions])) sortBy: SortBy,
     @Query('sortOrder', ValidateSortOrderPipe) sortOrder: 'asc' | 'desc',
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @Query('page', ParseIntPipe, ValidateIsPositivePipe) page: number,
+    @Query('limit', ParseIntPipe, ValidateIsPositivePipe) limit: number,
   ) {
     console.log('get all');
 
@@ -60,7 +64,10 @@ export class RecipesController {
   }
 
   @Patch(':id')
-  updateRecipe(@Param('id') id: string, @Body() body: UpdateRecipeDTO) {
+  updateRecipe(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateRecipeDTO,
+  ) {
     console.log('update');
 
     return this.recipesService.updateRecipe(id, body).pipe(
