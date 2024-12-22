@@ -12,6 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { map } from 'rxjs';
+import { Roles } from 'nest-keycloak-connect';
 
 import {
   ValidateIsPositivePipe,
@@ -29,6 +30,7 @@ export class RecipesController {
   constructor(private recipesService: RecipesService) {}
 
   @Get()
+  @Roles({ roles: ['user'] })
   getRecipes(
     @Query('name') name: string,
     @Query('sortBy', new ValidateSortByPipe([...sortOptions])) sortBy: SortBy,
@@ -42,6 +44,7 @@ export class RecipesController {
   }
 
   @Get(':id')
+  @Roles({ roles: ['user'] })
   getRecipe(@Param('id', ParseUUIDPipe) id: string) {
     console.log('get id');
 
@@ -57,6 +60,7 @@ export class RecipesController {
   }
 
   @Post()
+  @Roles({ roles: ['user'] })
   createRecipe(@Body() body: CreateRecipeDTO) {
     console.log('create');
 
@@ -64,6 +68,7 @@ export class RecipesController {
   }
 
   @Patch(':id')
+  @Roles({ roles: ['user'] })
   updateRecipe(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateRecipeDTO,
@@ -82,6 +87,7 @@ export class RecipesController {
   }
 
   @Delete(':id')
+  @Roles({ roles: ['user'] })
   deleteRecipe(@Param('id', ParseUUIDPipe) id: string) {
     console.log('delete');
 

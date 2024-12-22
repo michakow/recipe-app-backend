@@ -7,10 +7,21 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
     ports:
-      - '5433:5432'
+      - '5432:5432'
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - recipes_data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: recipes_keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - '8080:8080'
+    command:
+      - start-dev
 
 volumes:
   recipes_data:
