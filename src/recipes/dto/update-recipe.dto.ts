@@ -1,3 +1,3 @@
-import { RecipesEntity } from '../entities';
+import { CreateRecipeDTO } from './create-recipe.dto';
 
-export class UpdateRecipeDTO extends RecipesEntity {}
+export class UpdateRecipeDTO extends CreateRecipeDTO {}

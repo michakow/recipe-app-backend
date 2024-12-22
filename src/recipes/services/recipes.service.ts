@@ -44,7 +44,12 @@ export class RecipesService {
   }
 
   createRecipe(recipe: CreateRecipeDTO) {
-    return from(this.recipeRepository.save(recipe));
+    const newRecipe: Omit<RecipesEntity, 'id'> = {
+      ...recipe,
+      createdDate: new Date(),
+      updatedDate: new Date(),
+    };
+    return from(this.recipeRepository.save(newRecipe));
   }
 
   updateRecipe(id: string, recipe: UpdateRecipeDTO) {
