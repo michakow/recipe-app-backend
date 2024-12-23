@@ -10,6 +10,7 @@ import { APP_GUARD } from '@nestjs/core';
 
 import { getDbConfig, getKeycloakConfig } from './shared';
 import { RecipesModule } from './recipes';
+import { UsersModule } from './users';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +23,7 @@ import { AppService } from './app.service';
       useFactory: () => getKeycloakConfig(),
     }),
     RecipesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

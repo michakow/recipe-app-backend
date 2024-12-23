@@ -3,19 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
 import { from, map } from 'rxjs';
 
-import { CreateRecipeDTO, UpdateRecipeDTO } from '../dto';
-import { RecipesEntity } from '../entities';
+import { UpdateUserDTO } from '../dto';
+import { UsersEntity } from '../entities';
 
 @Injectable()
-export class RecipesService {
+export class UsersService {
   constructor(
-    @InjectRepository(RecipesEntity)
-    private readonly recipeRepository: Repository<RecipesEntity>,
+    @InjectRepository(UsersEntity)
+    private readonly usersRepository: Repository<UsersEntity>,
   ) {}
 
-  getRecipes(
+  getUsers(
     name: string,
-    sortBy: keyof FindOptionsOrder<RecipesEntity>,
+    sortBy: keyof FindOptionsOrder<UsersEntity>,
     sortOrder: 'asc' | 'desc',
     page: number,
     limit: number,
@@ -23,7 +23,7 @@ export class RecipesService {
     const paginationOffset = (page - 1) * limit;
 
     return from(
-      this.recipeRepository.findAndCount({
+      this.usersRepository.findAndCount({
         where: { name: ILike(`%${name}%`) },
         order: { [sortBy]: sortOrder },
         skip: paginationOffset,
@@ -39,21 +39,24 @@ export class RecipesService {
     );
   }
 
-  getRecipe(id: string) {
-    return from(this.recipeRepository.findOneBy({ id }));
+  getUser(id: string) {
+    return from(this.usersRepository.findOneBy({ id }));
   }
 
-  createRecipe(recipe: CreateRecipeDTO) {
-    const newRecipe: Omit<RecipesEntity, 'id'> = {
-      ...recipe,
-      createdDate: new Date(),
-      updatedDate: new Date(),
-    };
-    return from(this.recipeRepository.save(newRecipe));
+  verifyUser(id: string) {
+    return this.getUser(id).pipe(
+      map((result) => {
+        if (!result) {
+          return null;
+        }
+
+        return result;
+      }),
+    );
   }
 
-  updateRecipe(id: string, recipe: UpdateRecipeDTO) {
-    return from(this.recipeRepository.update(id, recipe)).pipe(
+  updateUser(id: string, user: UpdateUserDTO) {
+    return from(this.usersRepository.update(id, user)).pipe(
       map((result) => {
         if (result.affected === 0) {
           return null;
@@ -64,8 +67,8 @@ export class RecipesService {
     );
   }
 
-  deleteRecipe(id: string) {
-    return from(this.recipeRepository.delete(id)).pipe(
+  deleteUser(id: string) {
+    return from(this.usersRepository.delete(id)).pipe(
       map((result) => {
         if (result.affected === 0) {
           return null;
