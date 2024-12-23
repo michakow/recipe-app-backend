@@ -8,12 +8,15 @@ import {
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Roles } from 'nest-keycloak-connect';
 
 import {
+  getValuesFromToken,
   ValidateIsPositivePipe,
   ValidateSortByPipe,
   ValidateSortOrderPipe,
@@ -21,7 +24,7 @@ import {
 
 import { UpdateUserDTO } from '../dto';
 import { UsersService } from '../services';
-import { SortBy } from '../types';
+import { SortBy, TokenUserObject } from '../types';
 import { sortOptions } from '../configs';
 
 @Controller('users')
@@ -56,6 +59,23 @@ export class UsersController {
         return result;
       }),
     );
+  }
+
+  @Post('verify')
+  @Roles({ roles: ['user'] })
+  verifyUser(@Req() req: Request) {
+    console.log('verify');
+
+    const tokenUserObject = getValuesFromToken(req.headers['authorization'], [
+      'sub',
+      'preferred_username',
+      'name',
+      'given_name',
+      'family_name',
+      'email',
+    ]) as TokenUserObject;
+
+    return this.usersService.verifyUser(tokenUserObject);
   }
 
   @Patch(':id')

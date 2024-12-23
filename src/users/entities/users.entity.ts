@@ -6,7 +6,19 @@ export class UsersEntity {
   id: string;
 
   @Column('text')
-  name: string;
+  login: string;
+
+  @Column('text', { name: 'full_name' })
+  fullName: string;
+
+  @Column('text', { name: 'first_name' })
+  firstName: string;
+
+  @Column('text', { name: 'last_name' })
+  lastName: string;
+
+  @Column('text')
+  email: string;
 
   @Column('int')
   recipes: number;

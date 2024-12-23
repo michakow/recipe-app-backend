@@ -1,1 +1,1 @@
-export type SortBy = 'name' | 'recipes' | 'createdDate';
+export type SortBy = 'fullName' | 'recipes' | 'createdDate';

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
-import { from, map } from 'rxjs';
+import { from, map, of, switchMap } from 'rxjs';
 
 import { UpdateUserDTO } from '../dto';
 import { UsersEntity } from '../entities';
+import { TokenUserObject } from '../types';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +25,7 @@ export class UsersService {
 
     return from(
       this.usersRepository.findAndCount({
-        where: { name: ILike(`%${name}%`) },
+        where: { fullName: ILike(`%${name}%`) },
         order: { [sortBy]: sortOrder },
         skip: paginationOffset,
         take: limit,
@@ -43,14 +44,24 @@ export class UsersService {
     return from(this.usersRepository.findOneBy({ id }));
   }
 
-  verifyUser(id: string) {
-    return this.getUser(id).pipe(
-      map((result) => {
-        if (!result) {
-          return null;
+  verifyUser(tokenUserObject: TokenUserObject, withCreate = false) {
+    return this.getUser(tokenUserObject.sub).pipe(
+      switchMap((result) => {
+        if (result) {
+          console.log('User found and verified');
+
+          return of(result);
         }
 
-        return result;
+        if (!result && withCreate) {
+          console.log('User not found, try to create one');
+
+          return this.createUser(tokenUserObject);
+        }
+
+        console.log('User not found');
+
+        throw new UnauthorizedException('Account not exists');
       }),
     );
   }
@@ -77,5 +88,23 @@ export class UsersService {
         return result;
       }),
     );
+  }
+
+  private createUser(tokenUserObject: TokenUserObject) {
+    const newUser: UsersEntity = {
+      id: tokenUserObject.sub,
+      login: tokenUserObject.preferred_username,
+      fullName: tokenUserObject.name,
+      firstName: tokenUserObject.given_name,
+      lastName: tokenUserObject.family_name,
+      email: tokenUserObject.email,
+      recipes: 0,
+      createdDate: new Date(),
+      updatedDate: new Date(),
+    };
+
+    console.log('creating new user');
+
+    return from(this.usersRepository.save(newUser));
   }
 }
