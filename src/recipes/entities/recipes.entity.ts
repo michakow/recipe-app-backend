@@ -14,6 +14,9 @@ export class RecipesEntity {
   @Column('text')
   author: string;
 
+  @Column('uuid', { name: 'author_id' })
+  authorId: string;
+
   @Column('timestamp', { name: 'created_date' })
   createdDate: Date;
 

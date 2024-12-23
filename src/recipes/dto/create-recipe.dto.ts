@@ -14,6 +14,10 @@ export class CreateRecipeDTO {
   author: string;
 
   @IsNotEmpty()
+  @IsString()
+  authorId: string;
+
+  @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })
   ingredients: string[];
