@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -12,7 +11,6 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { map } from 'rxjs';
 import { Roles } from 'nest-keycloak-connect';
 
 import {
@@ -49,22 +47,12 @@ export class UsersController {
   getUser(@Param('id', ParseUUIDPipe) id: string) {
     console.log('get id');
 
-    return this.usersService.getUser(id).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('User not found');
-        }
-
-        return result;
-      }),
-    );
+    return this.usersService.getUser(id);
   }
 
   @Post('verify')
-  @Roles({ roles: ['user'] })
+  @Roles({ roles: [] })
   verifyUser(@Req() req: Request) {
-    console.log('verify');
-
     const token = req.headers['authorization'] as string;
 
     return this.usersService.verifyUser(token, true);
@@ -76,32 +64,12 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateUserDTO,
   ) {
-    console.log('update');
-
-    return this.usersService.updateUser(id, body).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('User not found');
-        }
-
-        return `User ${id} updated`;
-      }),
-    );
+    return this.usersService.updateUser(id, body);
   }
 
   @Delete(':id')
   @Roles({ roles: ['user'] })
   deleteUser(@Param('id', ParseUUIDPipe) id: string) {
-    console.log('delete');
-
-    return this.usersService.deleteUser(id).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('User not found');
-        }
-
-        return `User ${id} deleted`;
-      }),
-    );
+    return this.usersService.deleteUser(id);
   }
 }

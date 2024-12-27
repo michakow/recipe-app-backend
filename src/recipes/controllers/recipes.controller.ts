@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -11,7 +10,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { map } from 'rxjs';
 import { Roles } from 'nest-keycloak-connect';
 
 import {
@@ -38,32 +36,18 @@ export class RecipesController {
     @Query('page', ParseIntPipe, ValidateIsPositivePipe) page: number,
     @Query('limit', ParseIntPipe, ValidateIsPositivePipe) limit: number,
   ) {
-    console.log('get all');
-
     return this.recipesService.getRecipes(name, sortBy, sortOrder, page, limit);
   }
 
   @Get(':id')
   @Roles({ roles: ['user'] })
   getRecipe(@Param('id', ParseUUIDPipe) id: string) {
-    console.log('get id');
-
-    return this.recipesService.getRecipe(id).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('Recipe not found');
-        }
-
-        return result;
-      }),
-    );
+    return this.recipesService.getRecipe(id);
   }
 
   @Post()
   @Roles({ roles: ['user'] })
   createRecipe(@Body() body: CreateRecipeDTO) {
-    console.log('create');
-
     return this.recipesService.createRecipe(body);
   }
 
@@ -73,32 +57,12 @@ export class RecipesController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateRecipeDTO,
   ) {
-    console.log('update');
-
-    return this.recipesService.updateRecipe(id, body).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('Recipe not found');
-        }
-
-        return `Recipe ${id} updated`;
-      }),
-    );
+    return this.recipesService.updateRecipe(id, body);
   }
 
   @Delete(':id')
   @Roles({ roles: ['user'] })
   deleteRecipe(@Param('id', ParseUUIDPipe) id: string) {
-    console.log('delete');
-
-    return this.recipesService.deleteRecipe(id).pipe(
-      map((result) => {
-        if (!result) {
-          throw new NotFoundException('Recipe not found');
-        }
-
-        return `Recipe ${id} deleted`;
-      }),
-    );
+    return this.recipesService.deleteRecipe(id);
   }
 }

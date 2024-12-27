@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
 import { from, map, of, switchMap } from 'rxjs';
@@ -42,9 +46,18 @@ export class UsersService {
   }
 
   getUser(id: string) {
-    return from(this.usersRepository.findOneBy({ id }));
+    return from(this.usersRepository.findOneBy({ id })).pipe(
+      map((result) => {
+        if (!result) {
+          throw new NotFoundException('User not found');
+        }
+
+        return result;
+      }),
+    );
   }
 
+  // TODO: move to shared/auth.service
   verifyUser(token: string, withCreate = false) {
     const tokenUserObject = getValuesFromToken<TokenUserObject>(token, [
       'sub',
@@ -55,7 +68,9 @@ export class UsersService {
       'email',
     ]);
 
-    return this.getUser(tokenUserObject.sub).pipe(
+    return from(
+      this.usersRepository.findOneBy({ id: tokenUserObject.sub }),
+    ).pipe(
       switchMap((result) => {
         if (result) {
           console.log('User found and verified');
@@ -79,11 +94,9 @@ export class UsersService {
   updateUser(id: string, user: UpdateUserDTO) {
     return from(this.usersRepository.update(id, user)).pipe(
       map((result) => {
-        if (result.affected === 0) {
-          return null;
+        if (!result.affected) {
+          throw new NotFoundException('User not found');
         }
-
-        return result;
       }),
     );
   }
@@ -91,11 +104,9 @@ export class UsersService {
   deleteUser(id: string) {
     return from(this.usersRepository.delete(id)).pipe(
       map((result) => {
-        if (result.affected === 0) {
-          return null;
+        if (!result.affected) {
+          throw new NotFoundException('User not found');
         }
-
-        return result;
       }),
     );
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
 import { from, map } from 'rxjs';
@@ -40,7 +40,15 @@ export class RecipesService {
   }
 
   getRecipe(id: string) {
-    return from(this.recipeRepository.findOneBy({ id }));
+    return from(this.recipeRepository.findOneBy({ id })).pipe(
+      map((result) => {
+        if (!result) {
+          throw new NotFoundException('Recipe not found');
+        }
+
+        return result;
+      }),
+    );
   }
 
   createRecipe(recipe: CreateRecipeDTO) {
@@ -49,17 +57,17 @@ export class RecipesService {
       createdDate: new Date(),
       updatedDate: new Date(),
     };
-    return from(this.recipeRepository.save(newRecipe));
+    return from(this.recipeRepository.save(newRecipe)).pipe(
+      map((result) => result.id),
+    );
   }
 
   updateRecipe(id: string, recipe: UpdateRecipeDTO) {
     return from(this.recipeRepository.update(id, recipe)).pipe(
       map((result) => {
-        if (result.affected === 0) {
-          return null;
+        if (!result.affected) {
+          throw new NotFoundException('Recipe not found');
         }
-
-        return result;
       }),
     );
   }
@@ -67,11 +75,9 @@ export class RecipesService {
   deleteRecipe(id: string) {
     return from(this.recipeRepository.delete(id)).pipe(
       map((result) => {
-        if (result.affected === 0) {
-          return null;
+        if (!result.affected) {
+          throw new NotFoundException('Recipe not found');
         }
-
-        return result;
       }),
     );
   }
