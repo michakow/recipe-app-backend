@@ -16,7 +16,6 @@ import { map } from 'rxjs';
 import { Roles } from 'nest-keycloak-connect';
 
 import {
-  getValuesFromToken,
   ValidateIsPositivePipe,
   ValidateSortByPipe,
   ValidateSortOrderPipe,
@@ -24,7 +23,7 @@ import {
 
 import { UpdateUserDTO } from '../dto';
 import { UsersService } from '../services';
-import { SortBy, TokenUserObject } from '../types';
+import { SortBy } from '../types';
 import { sortOptions } from '../configs';
 
 @Controller('users')
@@ -66,16 +65,9 @@ export class UsersController {
   verifyUser(@Req() req: Request) {
     console.log('verify');
 
-    const tokenUserObject = getValuesFromToken(req.headers['authorization'], [
-      'sub',
-      'preferred_username',
-      'name',
-      'given_name',
-      'family_name',
-      'email',
-    ]) as TokenUserObject;
+    const token = req.headers['authorization'] as string;
 
-    return this.usersService.verifyUser(tokenUserObject);
+    return this.usersService.verifyUser(token, true);
   }
 
   @Patch(':id')

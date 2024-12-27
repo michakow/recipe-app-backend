@@ -6,6 +6,7 @@ import { from, map, of, switchMap } from 'rxjs';
 import { UpdateUserDTO } from '../dto';
 import { UsersEntity } from '../entities';
 import { TokenUserObject } from '../types';
+import { getValuesFromToken } from 'src/shared';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +45,16 @@ export class UsersService {
     return from(this.usersRepository.findOneBy({ id }));
   }
 
-  verifyUser(tokenUserObject: TokenUserObject, withCreate = false) {
+  verifyUser(token: string, withCreate = false) {
+    const tokenUserObject = getValuesFromToken<TokenUserObject>(token, [
+      'sub',
+      'preferred_username',
+      'name',
+      'given_name',
+      'family_name',
+      'email',
+    ]);
+
     return this.getUser(tokenUserObject.sub).pipe(
       switchMap((result) => {
         if (result) {
