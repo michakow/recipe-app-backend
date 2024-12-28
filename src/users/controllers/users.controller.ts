@@ -3,13 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import { Roles } from 'nest-keycloak-connect';
 
@@ -52,9 +52,7 @@ export class UsersController {
 
   @Post('verify')
   @Roles({ roles: [] })
-  verifyUser(@Req() req: Request) {
-    const token = req.headers['authorization'] as string;
-
+  verifyUser(@Headers('authorization') token: string) {
     return this.usersService.verifyUser(token, true);
   }
 

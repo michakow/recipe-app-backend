@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -18,7 +19,7 @@ import {
   ValidateSortOrderPipe,
 } from 'src/shared';
 
-import { CreateRecipeDTO, UpdateRecipeDTO } from '../dto';
+import { CreateRecipeDTO, RateRecipeDTO, UpdateRecipeDTO } from '../dto';
 import { RecipesService } from '../services';
 import { SortBy } from '../types';
 import { sortOptions } from '../configs';
@@ -64,5 +65,35 @@ export class RecipesController {
   @Roles({ roles: ['user'] })
   deleteRecipe(@Param('id', ParseUUIDPipe) id: string) {
     return this.recipesService.deleteRecipe(id);
+  }
+
+  @Get(':id/ratings')
+  @Roles({ roles: ['user'] })
+  getRecipeRatings(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('sortOrder', ValidateSortOrderPipe) sortOrder: 'asc' | 'desc',
+    @Query('page', ParseIntPipe, ValidateIsPositivePipe) page: number,
+    @Query('limit', ParseIntPipe, ValidateIsPositivePipe) limit: number,
+  ) {
+    return this.recipesService.getRecipeRatings(id, sortOrder, page, limit);
+  }
+
+  @Get(':id/ratings/user')
+  @Roles({ roles: ['user'] })
+  getRecipeRatingByUserId(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('authorization') token: string,
+  ) {
+    return this.recipesService.getRecipeRatingByUserId(id, token);
+  }
+
+  @Post(':id/ratings')
+  @Roles({ roles: ['user'] })
+  rateRecipe(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() rating: RateRecipeDTO,
+    @Headers('authorization') token: string,
+  ) {
+    return this.recipesService.rateRecipe(rating, token);
   }
 }

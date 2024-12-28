@@ -113,7 +113,9 @@ export class RecipesService {
     );
   }
 
-  getRecipeRatingByUserId(recipeId: string, userId: string) {
+  getRecipeRatingByUserId(recipeId: string, token: string) {
+    const userId = this.getUserIdFromToken(token);
+
     return from(
       this.ratingRepository.find({ where: { recipeId, userId } }),
     ).pipe(
@@ -128,7 +130,7 @@ export class RecipesService {
   }
 
   rateRecipe(rating: RateRecipeDTO, token: string) {
-    const userId = getValuesFromToken<TokenUserObject>(token, ['sub']).sub;
+    const userId = this.getUserIdFromToken(token);
 
     const ratingWithUserId = {
       ...rating,
@@ -164,5 +166,9 @@ export class RecipesService {
         }
       }),
     );
+  }
+
+  private getUserIdFromToken(token: string) {
+    return getValuesFromToken<TokenUserObject>(token, ['sub']).sub;
   }
 }
