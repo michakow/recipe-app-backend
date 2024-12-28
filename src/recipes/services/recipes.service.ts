@@ -1,16 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
-import { from, map } from 'rxjs';
+import { from, map, switchMap } from 'rxjs';
 
-import { CreateRecipeDTO, UpdateRecipeDTO } from '../dto';
-import { RecipesEntity } from '../entities';
+import { TokenUserObject } from 'src/users';
+import { getPaginationOffset, getValuesFromToken } from 'src/shared';
+
+import { CreateRecipeDTO, RateRecipeDTO, UpdateRecipeDTO } from '../dto';
+import { RatingsEntity, RecipesEntity } from '../entities';
 
 @Injectable()
 export class RecipesService {
   constructor(
     @InjectRepository(RecipesEntity)
     private readonly recipeRepository: Repository<RecipesEntity>,
+    @InjectRepository(RatingsEntity)
+    private readonly ratingRepository: Repository<RatingsEntity>,
   ) {}
 
   getRecipes(
@@ -20,13 +25,11 @@ export class RecipesService {
     page: number,
     limit: number,
   ) {
-    const paginationOffset = (page - 1) * limit;
-
     return from(
       this.recipeRepository.findAndCount({
         where: { name: ILike(`%${name}%`) },
         order: { [sortBy]: sortOrder },
-        skip: paginationOffset,
+        skip: getPaginationOffset(page, limit),
         take: limit,
       }),
     ).pipe(
@@ -63,7 +66,12 @@ export class RecipesService {
   }
 
   updateRecipe(id: string, recipe: UpdateRecipeDTO) {
-    return from(this.recipeRepository.update(id, recipe)).pipe(
+    const updatedRecipe = {
+      ...recipe,
+      updatedDate: new Date(),
+    } as RecipesEntity;
+
+    return from(this.recipeRepository.update(id, updatedRecipe)).pipe(
       map((result) => {
         if (!result.affected) {
           throw new NotFoundException('Recipe not found');
@@ -77,6 +85,82 @@ export class RecipesService {
       map((result) => {
         if (!result.affected) {
           throw new NotFoundException('Recipe not found');
+        }
+      }),
+    );
+  }
+
+  getRecipeRatings(
+    recipeId: string,
+    sortOrder: 'asc' | 'desc',
+    page: number,
+    limit: number,
+  ) {
+    return from(
+      this.ratingRepository.findAndCount({
+        where: { recipeId },
+        order: { createdDate: sortOrder },
+        skip: getPaginationOffset(page, limit),
+        take: limit,
+      }),
+    ).pipe(
+      map(([data, totalElements]) => ({
+        data,
+        page,
+        limit,
+        totalElements,
+      })),
+    );
+  }
+
+  getRecipeRatingByUserId(recipeId: string, userId: string) {
+    return from(
+      this.ratingRepository.find({ where: { recipeId, userId } }),
+    ).pipe(
+      map((result) => {
+        if (!result.length) {
+          throw new NotFoundException('Rating not found');
+        }
+
+        return result;
+      }),
+    );
+  }
+
+  rateRecipe(rating: RateRecipeDTO, token: string) {
+    const userId = getValuesFromToken<TokenUserObject>(token, ['sub']).sub;
+
+    const ratingWithUserId = {
+      ...rating,
+      userId,
+    } as RatingsEntity;
+
+    return from(
+      this.ratingRepository.find({
+        where: { recipeId: rating.recipeId, userId },
+      }),
+    ).pipe(
+      switchMap((result) => {
+        if (result.length) {
+          return this.updateRating(result[0].id, ratingWithUserId);
+        }
+
+        return this.createRating(ratingWithUserId);
+      }),
+    );
+  }
+
+  private createRating(rating: RatingsEntity) {
+    return from(this.ratingRepository.save(rating)).pipe(
+      map((result) => result.id),
+    );
+  }
+
+  private updateRating(id: string, rating: RatingsEntity) {
+    return from(this.ratingRepository.update(id, rating)).pipe(
+      map((result) => {
+        if (!result.affected) {
+          throw new NotFoundException('Rating not found');
         }
       }),
     );

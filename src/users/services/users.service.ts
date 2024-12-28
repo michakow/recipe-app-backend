@@ -7,10 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
 import { from, map, of, switchMap } from 'rxjs';
 
+import { getPaginationOffset, getValuesFromToken } from 'src/shared';
+
 import { UpdateUserDTO } from '../dto';
 import { UsersEntity } from '../entities';
 import { TokenUserObject } from '../types';
-import { getValuesFromToken } from 'src/shared';
 
 @Injectable()
 export class UsersService {
@@ -26,13 +27,11 @@ export class UsersService {
     page: number,
     limit: number,
   ) {
-    const paginationOffset = (page - 1) * limit;
-
     return from(
       this.usersRepository.findAndCount({
         where: { fullName: ILike(`%${name}%`) },
         order: { [sortBy]: sortOrder },
-        skip: paginationOffset,
+        skip: getPaginationOffset(page, limit),
         take: limit,
       }),
     ).pipe(
