@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { RatingsEntity } from './ratings.entity';
 
 @Entity('recipes')
 export class RecipesEntity {
@@ -28,4 +29,7 @@ export class RecipesEntity {
 
   @Column('text', { array: true })
   steps: string[];
+
+  @OneToMany(() => RatingsEntity, (rating) => rating.recipe)
+  ratings: RatingsEntity[];
 }

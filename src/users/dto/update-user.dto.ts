@@ -1,14 +1,7 @@
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class UpdateUserDTO {
-  @IsNotEmpty()
-  @IsString()
-  id: string;
-
-  @IsNotEmpty()
-  @IsString()
-  login: string;
-
   @IsNotEmpty()
   @IsString()
   fullName: string;
@@ -26,6 +19,11 @@ export class UpdateUserDTO {
   email: string;
 
   @IsNotEmpty()
+  @Transform(({ value }) =>
+    value !== undefined && value !== null && !isNaN(Number(value))
+      ? Number(value)
+      : null,
+  )
   @IsNumber()
   recipes: number;
 }
