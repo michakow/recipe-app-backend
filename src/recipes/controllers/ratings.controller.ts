@@ -4,13 +4,16 @@ import {
   Get,
   Headers,
   ParseIntPipe,
-  ParseUUIDPipe,
   Post,
   Query,
 } from '@nestjs/common';
 import { Roles } from 'nest-keycloak-connect';
 
-import { ValidateIsPositivePipe, ValidateSortOrderPipe } from 'src/shared';
+import {
+  OptionalUUIDPipe,
+  ValidateIsPositivePipe,
+  ValidateSortOrderPipe,
+} from 'src/shared';
 
 import { RateRecipeDTO } from '../dto';
 
@@ -23,8 +26,8 @@ export class RatingsController {
   @Get()
   @Roles({ roles: ['user'] })
   getRatings(
-    @Query('userId', ParseUUIDPipe) userId: string,
-    @Query('recipeId', ParseUUIDPipe) recipeId: string,
+    @Query('userId', OptionalUUIDPipe) userId: string,
+    @Query('recipeId', OptionalUUIDPipe) recipeId: string,
     // @Query('sortBy') sortBy: string,
     @Query('sortOrder', ValidateSortOrderPipe) sortOrder: 'asc' | 'desc',
     @Query('page', ParseIntPipe, ValidateIsPositivePipe) page: number,
